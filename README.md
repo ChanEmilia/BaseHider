@@ -1,6 +1,6 @@
 ## Requires [ProtocolLib](https://www.spigotmc.org/resources/protocollib.1997/), for 1.21
-Side project I only spent a week on, don't expect this build to be perfect
-Inspired by the DonutSMP antiFreeCam plugin
+Side project I only spent a week on, don't expect this build to be perfect\
+Inspired by the DonutSMP antiFreeCam plugin\
 This plugin implements an antiESP/FreeCam mechanic by rendering all underground blocks as solid blocks, ie even if a player builds a base at bedrock, players are only shown deepslate until the player is within a specific proximity.
 ## Rundown:
   - Uses ProtocolLib to intercept and manipulate packets. Changes are purely visual and do not alter actual server world data
