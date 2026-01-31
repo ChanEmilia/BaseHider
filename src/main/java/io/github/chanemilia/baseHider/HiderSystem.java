@@ -349,7 +349,6 @@ public class HiderSystem implements Listener {
         List<Short> shortList = new ArrayList<>();
         List<WrappedBlockData> dataList = new ArrayList<>();
 
-        WrappedBlockData replacement = WrappedBlockData.createData(config.replacementBlock);
         Material replacementMat = config.replacementBlock.getMaterial();
 
         for (int y = 0; y < 16; y++) {
