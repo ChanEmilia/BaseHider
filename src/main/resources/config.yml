@@ -5,7 +5,7 @@
 
 # Global Performance Settings
 performance:
-  -updates-per-second: 100  # Total chunklets to update per second
+  updates-per-second: 100  # Total chunklets to update per second
   rescan-interval: 30          # Force rescan every 5 seconds
 
 # Don't try to hide blocks under the nether roof while above the nether roof
