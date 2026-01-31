@@ -100,6 +100,8 @@ public class HiderSystem implements Listener {
         int minSection = player.getWorld().getMinHeight() >> 4;
         int maxSection = Math.min(player.getWorld().getMaxHeight() >> 4, config.blockHideY >> 4);
 
+        double showDistSq = config.showDistanceSq;
+
         for (int sy = minSection; sy <= maxSection; sy++) {
             long sectionKey = getSectionKey(cx, cz, sy);
             String stateKey = player.getUniqueId().toString() + "_" + sectionKey;
