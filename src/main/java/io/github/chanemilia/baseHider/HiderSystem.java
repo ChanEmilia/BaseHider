@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
