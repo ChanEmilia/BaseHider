@@ -306,20 +306,8 @@ public class HiderSystem implements Listener {
 
     private void queueUpdate(UUID uuid, int cx, int cz, int sy, WorldConfig config, boolean hide, double distSq, String uniqueKey, long sectionKey) {
         if (hide) {
-            SectionCache cached = packetCache.get(sectionKey);
-            if (cached != null) {
-                cached.lastAccessed = System.currentTimeMillis();
-                updateQueue.add(new PendingUpdate(uuid, cx, cz, sy, cached.shorts, cached.data, distSq, uniqueKey));
-                return;
-            }
-
-            ScanResult solid = emiliasPaintBrush(sy, config);
-            if (solid != null) {
-                packetCache.put(sectionKey, new SectionCache(solid.shorts, solid.data));
-                updateQueue.add(new PendingUpdate(uuid, cx, cz, sy, solid.shorts, solid.data, distSq, uniqueKey));
-            } else {
-                pendingKeys.remove(uniqueKey);
-            }
+            SectionCache solid = getSolidCache(config);
+            updateQueue.add(new PendingUpdate(uuid, cx, cz, sy, solid.shorts, solid.data, distSq, uniqueKey));
             return;
         }
 
