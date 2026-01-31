@@ -94,7 +94,8 @@ public class HiderSystem implements Listener {
     private void processNewChunk(Player player, int cx, int cz, WorldConfig config) {
         if (!player.isOnline()) return;
 
-        double pY = player.getLocation().getY();
+        Location loc = player.getLocation();
+        double pY = loc.getY();
         if (pY < config.showY) return;
 
         int minSection = player.getWorld().getMinHeight() >> 4;
