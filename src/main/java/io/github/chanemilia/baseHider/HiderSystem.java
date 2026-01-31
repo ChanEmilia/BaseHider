@@ -164,9 +164,7 @@ public class HiderSystem implements Listener {
         this.rescanInterval = plugin.getConfig().getInt("performance.rescan-interval", 30);
 
         for (String key : plugin.getConfig().getKeys(false)) {
-            if (key.equalsIgnoreCase("max-updates-per-second") ||
-                    key.equalsIgnoreCase("rescan-interval") ||
-                    key.equalsIgnoreCase("performance")) continue;
+            if (key.equalsIgnoreCase("performance") || key.equalsIgnoreCase("enabled")) continue;
 
             ConfigurationSection section = plugin.getConfig().getConfigurationSection(key);
             if (section != null && section.getBoolean("enabled")) {
