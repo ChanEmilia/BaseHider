@@ -1,0 +1,13 @@
+name: BaseHider
+version: '0.1.0'
+main: io.github.chanemilia.baseHider.BaseHider
+api-version: '1.21'
+authors: [ChanEmilia]
+depend: [ProtocolLib]
+description: Hides underground caves and bases using ProtocolLib packets.
+
+commands:
+  basehider:
+    description: Reload the configuration
+    permission: basehider.op
+    usage: /basehider reload

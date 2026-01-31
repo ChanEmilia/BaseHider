@@ -1,0 +1,42 @@
+# BaseHider Configuration
+
+# Define settings per world
+# You can add custom dimension names here (e.g., "spawn", "resource_world")!
+
+# Global Performance Settings
+max-updates-per-second: 1600  # Total chunklets to update per second
+rescan-interval: 5            # Force rescan every 5 seconds
+
+# Don't try to hide blocks under the nether roof while above the nether roof
+# Hiding a really massive amount of different blocks will not work
+# (overworld underground will work because most of the blocks are deepslate)
+# I'm working on a solution to this problem
+
+world:
+  enabled: true
+  # Fake block used to mask real blocks
+  replacement-block: DEEPSLATE
+  # Hide all blocks at or below this y level, non-inclusive
+  block-hide-y: 0
+  # Radius around the player where the real blocks are revealed
+  show-distance: 64
+  # Reveal all blocks when player is below this y level
+  # Useful for when players enter large caves or underground megabases
+  show-y: 16
+
+world_nether:
+  # Recommended to set to false for the time being
+  enabled: false
+  # Maybe more than one replacement-block in the future
+  replacement-block: NETHERRACK
+  block-hide-y: 124
+  show-distance: 0
+  show-y: 126
+
+world_the_end:
+  # Recommended to set to false
+  enabled: false
+  replacement-block: AIR
+  block-hide-y: 0
+  show-distance: 0
+  show-y: 0
