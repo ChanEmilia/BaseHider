@@ -355,7 +355,7 @@ public class HiderSystem implements Listener {
 
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    Material mat = snapshot.getBlockType(x, absY, z);
+                    BlockData actualData = snapshot.getBlockData(x, absY, z);
 
                     if (actualData.getMaterial() != replacementMat) {
                         short local = (short) ((x << 8) | (z << 4) | y);
