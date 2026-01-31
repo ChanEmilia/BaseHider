@@ -321,7 +321,7 @@ public class HiderSystem implements Listener {
             ChunkSnapshot snapshot = p.getWorld().getChunkAt(cx, cz).getChunkSnapshot(false, false, false);
 
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                ScanResult result = scanSection(snapshot, sy, config, false);
+                ScanResult result = scanSection(snapshot, sy, config);
 
                 if (result != null) {
                     updateQueue.add(new PendingUpdate(uuid, cx, cz, sy, result.shorts, result.data, distSq, uniqueKey));
