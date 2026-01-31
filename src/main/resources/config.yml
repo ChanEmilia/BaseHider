@@ -4,8 +4,9 @@
 # You can add custom dimension names here (e.g., "spawn", "resource_world")!
 
 # Global Performance Settings
-max-updates-per-second: 100  # Total chunklets to update per second
-rescan-interval: 30          # Force rescan every 5 seconds
+performance:
+  -updates-per-second: 100  # Total chunklets to update per second
+  rescan-interval: 30          # Force rescan every 5 seconds
 
 # Don't try to hide blocks under the nether roof while above the nether roof
 # Hiding a really massive amount of different blocks will not work
