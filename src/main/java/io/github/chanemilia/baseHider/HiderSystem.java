@@ -384,7 +384,7 @@ public class HiderSystem implements Listener {
      * at least compared to reading World memory!
      * Avoids main-thread locking or disk I/O
      */
-    private ScanResult emiliasPaintBrush(int sy, WorldConfig config) {
+    private ScanResult emiliasPaintBrush(WorldConfig config) {
         int size = 4096;
         short[] shorts = new short[size];
         WrappedBlockData[] data = new WrappedBlockData[size];
