@@ -394,7 +394,6 @@ public class HiderSystem implements Listener {
 
         WrappedBlockData replacement = WrappedBlockData.createData(config.replacementBlock);
 
-        int startY = sy << 4;
         int i = 0;
 
         for (int y = 0; y < 16; y++) {
