@@ -340,6 +340,7 @@ public class HiderSystem implements Listener {
         });
     }
 
+    private ScanResult scanSection(ChunkSnapshot snapshot, int sy, WorldConfig config) {
         int startY = sy << 4;
 
         List<Short> shortList = new ArrayList<>();
