@@ -159,7 +159,7 @@ public class HiderSystem implements Listener {
     }
 
     private void loadConfig() {
-        int updatesPerSecond = plugin.getConfig().getInt("max-updates-per-second", 1600);
+        int updatesPerSecond = plugin.getConfig().getInt("max-updates-per-second", 100);
         this.updatesPerTick = Math.max(1, updatesPerSecond / 20);
         this.rescanInterval = plugin.getConfig().getInt("rescan-interval", 5);
 
