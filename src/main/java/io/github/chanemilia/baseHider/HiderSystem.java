@@ -397,8 +397,6 @@ public class HiderSystem implements Listener {
         int i = 0;
 
         for (int y = 0; y < 16; y++) {
-            if ((startY + y) >= config.blockHideY) continue;
-
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
                     shorts[i] = (short) ((x << 8) | (z << 4) | y);
