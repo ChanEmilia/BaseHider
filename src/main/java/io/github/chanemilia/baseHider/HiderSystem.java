@@ -104,14 +104,7 @@ public class HiderSystem implements Listener {
             currentStates.put(stateKey, true);
             pendingKeys.add(stateKey);
 
-            SectionCache cached = packetCache.get(sectionKey);
-            if (cached != null) {
-                cached.lastAccessed = System.currentTimeMillis();
-                PendingUpdate update = new PendingUpdate(player.getUniqueId(), cx, cz, sy, cached.shorts, cached.data, 0.0, stateKey);
-                sendProtocolPacket(player, update);
-                pendingKeys.remove(stateKey);
-                continue;
-            }
+            SectionCache solid = getSolidCache(config);
 
             ScanResult solid = emiliasPaintBrush(sy, config);
             if (solid != null) {
