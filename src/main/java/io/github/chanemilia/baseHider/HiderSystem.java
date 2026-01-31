@@ -360,7 +360,7 @@ public class HiderSystem implements Listener {
                     if (mat != replacementMat) {
                         short local = (short) ((x << 8) | (z << 4) | y);
                         shortList.add(local);
-                        dataList.add(WrappedBlockData.createData(mat));
+                        dataList.add(WrappedBlockData.createData(actualData));
                     }
                 }
             }
