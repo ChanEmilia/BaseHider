@@ -405,11 +405,6 @@ public class HiderSystem implements Listener {
             }
         }
 
-        if (i < size) {
-            if (i == 0) return null;
-            return new ScanResult(Arrays.copyOf(shorts, i), Arrays.copyOf(data, i));
-        }
-
         return new ScanResult(shorts, data);
     }
 
