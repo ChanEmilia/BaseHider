@@ -424,6 +424,7 @@ public class HiderSystem implements Listener {
         tasks.clear();
         packetCache.clear();
         updateQueue.clear();
+        solidCache.clear();
     }
 
     private long getSectionKey(int x, int z, int y) {
