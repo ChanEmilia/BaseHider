@@ -248,7 +248,13 @@ public class HiderSystem implements Listener {
 
         packet.getShortArrays().write(0, update.shorts);
         packet.getBlockDataArrays().write(0, update.data);
-        protocolManager.sendServerPacket(player, packet);
+
+        try {
+            protocolManager.sendServerPacket(player, packet);
+        } catch (OutOfMemoryError e) {
+            updateQueue.clear();
+            System.gc();
+        }
     }
 
     private void whatWouldEmiliaDo(Player player, WorldConfig config) {
