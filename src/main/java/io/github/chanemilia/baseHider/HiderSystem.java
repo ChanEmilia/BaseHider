@@ -37,6 +37,8 @@ public class HiderSystem implements Listener {
     private final PriorityBlockingQueue<PendingUpdate> updateQueue = new PriorityBlockingQueue<>();
     private final Set<String> pendingKeys = Collections.synchronizedSet(new HashSet<>());
 
+    private static final Map<Material, SectionCache> solidCache = new ConcurrentHashMap<>();
+
     private int updatesPerTick;
     private int rescanInterval;
 
