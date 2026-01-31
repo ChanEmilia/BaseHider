@@ -332,10 +332,13 @@ public class HiderSystem implements Listener {
         });
     }
 
-    private ScanResult scanSection(ChunkSnapshot snapshot, int sy, WorldConfig config, boolean hide) {
-        if (hide) {
-            return emiliasPaintBrush(sy, config);
-        }
+    private SectionCache getSolidCache(WorldConfig config) {
+        return solidCache.computeIfAbsent(config.replacementBlock.getMaterial(), k -> {
+            ScanResult res = emiliasPaintBrush(config);
+            if (res == null) return new SectionCache(new short[0], new WrappedBlockData[0]);
+            return new SectionCache(res.shorts, res.data);
+        });
+    }
 
         int startY = sy << 4;
 
