@@ -42,6 +42,7 @@ public class HiderSystem implements Listener {
 
     private int updatesPerTick;
     private int rescanInterval;
+    private boolean rehideChunks;
 
     private final List<BukkitTask> tasks = new ArrayList<>();
 
