@@ -59,7 +59,6 @@ public class HiderSystem implements Listener {
         registerChunkListener();
 
         startQueueProcessor();
-        startCacheCleaner();
         startRescanTask();
     }
 
