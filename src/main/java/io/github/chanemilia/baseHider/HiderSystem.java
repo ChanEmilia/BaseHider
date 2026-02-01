@@ -101,6 +101,41 @@ public class HiderSystem implements Listener {
                 PacketType.Play.Server.ENTITY_TELEPORT
         );
 
+        protocolManager.addPacketListener(new PacketAdapter(plugin, entityPackets) {
+            @Override
+            public void onPacketSending(PacketEvent event) {
+                Player player = event.getPlayer();
+                if (player == null || !player.isOnline()) return;
+
+                WorldConfig config = worldConfigs.get(player.getWorld().getName());
+                if (config == null || !config.hideEntities) return;
+
+                try {
+                    int entityId = event.getPacket().getIntegers().read(0);
+                    org.bukkit.entity.Entity entity = protocolManager.getEntityFromID(player.getWorld(), entityId);
+
+                    if (entity == null || entity.isDead()) return;
+
+                    // Don't hide their own player (though they shouldn't receive their own spawn packet usually
+                    if (entity.getEntityId() == player.getEntityId()) return;
+
+                    Location entLoc = entity.getLocation();
+
+                    if (entLoc.getBlockY() > config.blockHideY) return;
+
+                    if (player.getLocation().getY() < config.showY) return;
+
+                    double distSq = player.getLocation().distanceSquared(entLoc);
+
+                    if (distSq > config.showDistanceSq) {
+                        event.setCancelled(true);
+                    }
+
+                } catch (Exception e) {
+                    // Ignore error?
+                }
+            }
+        });
 
     }
 
