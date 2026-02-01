@@ -14,6 +14,7 @@ public class WorldConfig {
 
     public WorldConfig(ConfigurationSection section) {
         this.enabled = section.getBoolean("enabled", false);
+        this.hideEntities = section.getBoolean("hide-entities", false);
 
         Material mat = Material.getMaterial(section.getString("replacement-block", "DEEPSLATE"));
         this.replacementBlock = (mat != null ? mat : Material.DEEPSLATE).createBlockData();
