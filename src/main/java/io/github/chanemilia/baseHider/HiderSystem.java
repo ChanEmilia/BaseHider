@@ -95,6 +95,7 @@ public class HiderSystem implements Listener {
         if (!player.isOnline()) return;
 
         Location loc = player.getLocation();
+        double pX = loc.getX();
         double pY = loc.getY();
         double pZ = loc.getZ();
 
