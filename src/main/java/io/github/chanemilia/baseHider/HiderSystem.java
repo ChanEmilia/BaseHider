@@ -349,7 +349,12 @@ public class HiderSystem implements Listener {
 
                         if (pendingKeys.contains(stateKey)) continue;
 
-                        currentStates.put(stateKey, shouldHide);
+                        if (shouldHide) {
+                            currentStates.put(stateKey, true);
+                        } else {
+                            currentStates.remove(stateKey);
+                        }
+
                         pendingKeys.add(stateKey);
 
                         queueUpdate(player.getUniqueId(), cx, cz, sy, config, shouldHide, distSq, stateKey, sectionKey);
