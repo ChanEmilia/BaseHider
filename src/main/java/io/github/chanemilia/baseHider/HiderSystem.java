@@ -405,14 +405,15 @@ public class HiderSystem implements Listener {
                         destroyPacket.getIntegerArrays().write(0, new int[]{entity.getEntityId()});
                     }
 
-                try {
-                    protocolManager.sendServerPacket(player, destroyPacket);
-                    hiddenEntities.add(key);
-                } catch (Exception e) {
-                    // Ignore
+                    try {
+                        protocolManager.sendServerPacket(player, destroyPacket);
+                        hiddenEntities.add(key);
+                    } catch (Exception e) {
+                        // Ignore
+                    }
                 }
             }
-        }
+        });
     }
 
     private void queueUpdate(UUID uuid, int cx, int cz, int sy, WorldConfig config, boolean hide, double distSq, String uniqueKey, long sectionKey) {
