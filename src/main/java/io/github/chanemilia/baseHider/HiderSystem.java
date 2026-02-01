@@ -296,7 +296,7 @@ public class HiderSystem implements Listener {
                     Boolean isHidden = currentStates.getOrDefault(stateKey, false);
 
                     if (shouldHide != isHidden) {
-                        if (shouldHide && !isHidden && !rehideChunks) {
+                        if (shouldHide && !isHidden && !globalConfig.rehideChunks) {
                             continue;
                         }
 
