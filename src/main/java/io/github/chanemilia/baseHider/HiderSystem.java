@@ -113,11 +113,7 @@ public class HiderSystem implements Listener {
                 long sectionKey = getSectionKey(cx, cz, sy);
                 String stateKey = player.getUniqueId().toString() + "_" + sectionKey;
 
-                if (currentStates.containsKey(stateKey)) {
-                    currentStates.put(stateKey, false);
-                }
-                continue;
-            }
+            boolean shouldHide = distSq > config.showDistanceSq;
 
             long sectionKey = getSectionKey(cx, cz, sy);
             String stateKey = player.getUniqueId().toString() + "_" + sectionKey;
