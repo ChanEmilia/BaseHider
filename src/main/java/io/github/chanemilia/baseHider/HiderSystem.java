@@ -39,9 +39,7 @@ public class HiderSystem implements Listener {
 
     private static final Map<Material, SectionCache> solidCache = new ConcurrentHashMap<>();
 
-    private int updatesPerTick;
-    private int rescanInterval;
-    private boolean rehideChunks;
+    private GlobalConfig globalConfig;
 
     private final List<BukkitTask> tasks = new ArrayList<>();
 
