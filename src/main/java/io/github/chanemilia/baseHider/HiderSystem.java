@@ -96,6 +96,8 @@ public class HiderSystem implements Listener {
 
         Location loc = player.getLocation();
         double pY = loc.getY();
+        double pZ = loc.getZ();
+
         if (pY < config.showY) return;
 
         int minSection = player.getWorld().getMinHeight() >> 4;
