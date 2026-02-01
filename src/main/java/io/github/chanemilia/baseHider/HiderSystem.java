@@ -213,7 +213,7 @@ public class HiderSystem implements Listener {
                     }
                 }
             }
-        }.runTaskTimer(plugin, rescanInterval, rescanInterval));
+        }.runTaskTimer(plugin, globalConfig.rescanInterval, globalConfig.rescanInterval));
     }
 
     private void startQueueProcessor() {
