@@ -6,6 +6,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class WorldConfig {
     public final boolean enabled;
+    public final boolean hideEntities;
     public final BlockData replacementBlock;
     public final int blockHideY;
     public final int showDistanceSq;
