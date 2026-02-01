@@ -97,10 +97,6 @@ public class HiderSystem implements Listener {
                 PacketType.Play.Server.SPAWN_ENTITY,
                 PacketType.Play.Server.SPAWN_ENTITY_EXPERIENCE_ORB,
                 PacketType.Play.Server.NAMED_SOUND_EFFECT, // Optional (? also hides sounds I guess
-                PacketType.Play.Server.ENTITY_METADATA,
-                PacketType.Play.Server.REL_ENTITY_MOVE,
-                PacketType.Play.Server.REL_ENTITY_MOVE_LOOK,
-                PacketType.Play.Server.ENTITY_LOOK,
                 PacketType.Play.Server.ENTITY_TELEPORT
         );
 
