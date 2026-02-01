@@ -34,7 +34,6 @@ public class HiderSystem implements Listener {
     private final Map<String, WorldConfig> worldConfigs = new HashMap<>();
 
     private final Map<String, Boolean> currentStates = new ConcurrentHashMap<>();
-    private final Map<Long, SectionCache> packetCache = new ConcurrentHashMap<>();
     private final PriorityBlockingQueue<PendingUpdate> updateQueue = new PriorityBlockingQueue<>();
     private final Set<String> pendingKeys = Collections.synchronizedSet(new HashSet<>());
 
