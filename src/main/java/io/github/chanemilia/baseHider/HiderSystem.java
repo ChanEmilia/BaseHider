@@ -136,7 +136,6 @@ public class HiderSystem implements Listener {
                 }
             }
         });
-
     }
 
     private void processNewChunk(Player player, int cx, int cz, WorldConfig config) {
