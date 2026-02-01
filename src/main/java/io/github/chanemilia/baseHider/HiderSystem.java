@@ -522,6 +522,7 @@ public class HiderSystem implements Listener {
         tasks.clear();
         updateQueue.clear();
         solidCache.clear();
+        hiddenEntities.clear();
     }
 
     private long getSectionKey(int x, int z, int y) {
