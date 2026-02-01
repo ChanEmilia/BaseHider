@@ -430,7 +430,6 @@ public class HiderSystem implements Listener {
     public void shutdown() {
         for (BukkitTask t : tasks) t.cancel();
         tasks.clear();
-        packetCache.clear();
         updateQueue.clear();
         solidCache.clear();
     }
