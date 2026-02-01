@@ -376,8 +376,8 @@ public class HiderSystem implements Listener {
             for (org.bukkit.entity.Entity entity : player.getNearbyEntities(radius, 512, radius)) {
                 if (entity.getEntityId() == player.getEntityId()) continue;
 
-            String key = player.getUniqueId() + "_" + entity.getEntityId();
-            boolean isCurrentlyHidden = hiddenEntities.contains(key);
+                String key = player.getUniqueId() + "_" + entity.getEntityId();
+                boolean isCurrentlyHidden = hiddenEntities.contains(key);
 
             Location loc = entity.getLocation();
             boolean shouldHide = false;
