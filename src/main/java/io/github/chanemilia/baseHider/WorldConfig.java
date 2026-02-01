@@ -24,8 +24,4 @@ public class WorldConfig {
 
         this.showY = section.getInt("show-y", 25);
     }
-
-    public boolean shouldReplace(Material mat) {
-        return true;
-    }
 }
