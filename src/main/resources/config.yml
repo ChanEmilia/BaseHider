@@ -39,7 +39,7 @@ world_nether:
   hide-entities: true
   # Maybe more than one replacement-block in the future
   replacement-block: NETHERRACK
-  block-hide-y: 124
+  block-hide-y: 123
   show-distance: 0
   show-y: 126
 
