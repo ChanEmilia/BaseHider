@@ -127,9 +127,12 @@ public class HiderSystem implements Listener {
 
             SectionCache solid = getSolidCache(config);
 
-            PendingUpdate update = new PendingUpdate(player.getUniqueId(), cx, cz, sy, solid.shorts, solid.data, 0.0, stateKey);
-            sendProtocolPacket(player, update);
-            pendingKeys.remove(stateKey);
+                PendingUpdate update = new PendingUpdate(player.getUniqueId(), cx, cz, sy, solid.shorts, solid.data, 0.0, stateKey);
+                sendProtocolPacket(player, update);
+                pendingKeys.remove(stateKey);
+            } else {
+                currentStates.put(stateKey, false);
+            }
         }
     }
 
