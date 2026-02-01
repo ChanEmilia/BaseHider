@@ -19,6 +19,10 @@ performance:
 
 world:
   enabled: true
+  # Whether or not to hide entities as well, disable if your simulation
+  # distance is low enough that entities hide automatically anyway
+  # Or if you have a raytraced anti ESP plugin
+  hide-entities: true
   # Fake block used to mask real blocks
   replacement-block: DEEPSLATE
   # Hide all blocks at or below this y level, non-inclusive
