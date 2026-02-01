@@ -368,8 +368,13 @@ public class HiderSystem implements Listener {
     }
 
     private void updateEntityVisibility(Player player, WorldConfig config) {
-        for (org.bukkit.entity.Entity entity : player.getWorld().getEntities()) {
-            if (entity.getEntityId() == player.getEntityId()) continue;
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline()) return;
+
+            int radius = (player.getClientViewDistance() + 2) * 16;
+
+            for (org.bukkit.entity.Entity entity : player.getNearbyEntities(radius, 512, radius)) {
+                if (entity.getEntityId() == player.getEntityId()) continue;
 
             String key = player.getUniqueId() + "_" + entity.getEntityId();
             boolean isCurrentlyHidden = hiddenEntities.contains(key);
