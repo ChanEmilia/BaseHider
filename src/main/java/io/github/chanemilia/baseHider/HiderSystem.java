@@ -467,7 +467,7 @@ public class HiderSystem implements Listener {
     private static class SectionCache {
         final short[] shorts;
         final WrappedBlockData[] data;
-        long lastAccessed;
+        long lastAccessed; // Might be redundant (?
 
         SectionCache(short[] s, WrappedBlockData[] d) {
             this.shorts = s;
