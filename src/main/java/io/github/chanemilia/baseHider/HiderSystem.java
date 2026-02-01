@@ -128,6 +128,7 @@ public class HiderSystem implements Listener {
 
                     if (distSq > config.showDistanceSq) {
                         event.setCancelled(true);
+                        hiddenEntities.add(player.getUniqueId() + "_" + entityId);
                     }
 
                 } catch (Exception e) {
