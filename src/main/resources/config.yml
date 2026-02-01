@@ -36,6 +36,7 @@ world:
 world_nether:
   # Recommended to set to false for the time being
   enabled: false
+  hide-entities: true
   # Maybe more than one replacement-block in the future
   replacement-block: NETHERRACK
   block-hide-y: 124
