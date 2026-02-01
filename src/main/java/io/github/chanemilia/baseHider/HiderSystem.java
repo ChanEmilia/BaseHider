@@ -382,11 +382,11 @@ public class HiderSystem implements Listener {
                 Location loc = entity.getLocation();
                 boolean shouldHide = false;
 
-            if (loc.getBlockY() <= config.blockHideY && player.getLocation().getY() >= config.showY) {
-                if (player.getLocation().distanceSquared(loc) > config.showDistanceSq) {
-                    shouldHide = true;
+                if (loc.getBlockY() <= config.blockHideY && player.getLocation().getY() >= config.showY) {
+                    if (player.getLocation().distanceSquared(loc) > config.showDistanceSq) {
+                        shouldHide = true;
+                    }
                 }
-            }
 
             if (isCurrentlyHidden && !shouldHide) {
                 // Reveal entity by resending update packet
