@@ -95,7 +95,6 @@ public class HiderSystem implements Listener {
     private void registerEntityListener() {
         List<PacketType> entityPackets = Arrays.asList(
                 PacketType.Play.Server.SPAWN_ENTITY,
-                PacketType.Play.Server.SPAWN_ENTITY_EXPERIENCE_ORB,
                 PacketType.Play.Server.NAMED_SOUND_EFFECT, // Optional (? also hides sounds I guess
                 PacketType.Play.Server.ENTITY_TELEPORT
         );
