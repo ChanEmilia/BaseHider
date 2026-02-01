@@ -15,16 +15,17 @@ This plugin implements an antiESP/FreeCam mechanic by rendering all underground 
   - Packet caching to reduce CPU load when players revisit areas
 ## Configuration:
 ```yaml
+# Define settings per world
 # You can add custom dimension names here (e.g., "spawn", "resource_world")!
 
 # Global Performance Settings
-max-updates-per-second: 1600  # Total chunklets to update per second
-rescan-interval: 5                         # Force rescan every 5 seconds
-
-# Don't try to hide blocks under the nether roof while above the nether roof
-# Hiding a really massive amount of different blocks will not work
-# (overworld underground will work because most of the blocks are deepslate)
-# I'm working on a solution to this problem
+performance:
+  updates-per-second: 100  # Total chunklets to update per second
+  rescan-interval: 10      # Force rescan every 10 ticks
+  # If false, chunks that have been revealed will stay revealed until the player quits
+  # Saves performance and I guess if they've already seen it there's no reason to rehide
+  # If true, chunks will turn back into replacement-block when the player moves away
+  rehide-chunks: false
 
 world:
   enabled: true
