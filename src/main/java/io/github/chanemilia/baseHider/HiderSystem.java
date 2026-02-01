@@ -362,6 +362,54 @@ public class HiderSystem implements Listener {
                 }
             }
         }
+
+        if (config.hideEntities) {
+            updateEntityVisibility(player, config);
+        }
+    }
+
+    private void updateEntityVisibility(Player player, WorldConfig config) {
+        for (org.bukkit.entity.Entity entity : player.getWorld().getEntities()) {
+            if (entity.getEntityId() == player.getEntityId()) continue;
+
+            String key = player.getUniqueId() + "_" + entity.getEntityId();
+            boolean isCurrentlyHidden = hiddenEntities.contains(key);
+
+            Location loc = entity.getLocation();
+            boolean shouldHide = false;
+
+            if (loc.getBlockY() <= config.blockHideY && player.getLocation().getY() >= config.showY) {
+                if (player.getLocation().distanceSquared(loc) > config.showDistanceSq) {
+                    shouldHide = true;
+                }
+            }
+
+            if (isCurrentlyHidden && !shouldHide) {
+                // Reveal entity by resending update packet
+                try {
+                    protocolManager.updateEntity(entity, Collections.singletonList(player));
+                    hiddenEntities.remove(key);
+                } catch (Exception e) {
+                    // Entity likely dead/invalid
+                }
+            }
+            else if (!isCurrentlyHidden && shouldHide) {
+                // Hide entity by sending destroy packet
+                PacketContainer destroyPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
+                if (Bukkit.getVersion().contains("1.20") || Bukkit.getVersion().contains("1.21")) {
+                    destroyPacket.getIntLists().write(0, Collections.singletonList(entity.getEntityId()));
+                } else {
+                    destroyPacket.getIntegerArrays().write(0, new int[]{entity.getEntityId()});
+                }
+
+                try {
+                    protocolManager.sendServerPacket(player, destroyPacket);
+                    hiddenEntities.add(key);
+                } catch (Exception e) {
+                    // Ignore
+                }
+            }
+        }
     }
 
     private void queueUpdate(UUID uuid, int cx, int cz, int sy, WorldConfig config, boolean hide, double distSq, String uniqueKey, long sectionKey) {
