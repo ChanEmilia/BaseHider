@@ -45,6 +45,7 @@ world_nether:
 world_the_end:
   # Recommended to set to false
   enabled: false
+  hide-entities: true
   replacement-block: AIR
   block-hide-y: 0
   show-distance: 0
