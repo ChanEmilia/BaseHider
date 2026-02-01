@@ -369,7 +369,6 @@ public class HiderSystem implements Listener {
 
         for (int y = 0; y < 16; y++) {
             int absY = startY + y;
-            if (absY > config.blockHideY) continue;
 
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
