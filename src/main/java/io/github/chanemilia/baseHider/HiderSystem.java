@@ -115,7 +115,7 @@ public class HiderSystem implements Listener {
                 currentStates.put(stateKey, true);
                 pendingKeys.add(stateKey);
 
-            SectionCache solid = getSolidCache(config);
+                SectionCache solid = getSolidCache(config);
 
                 PendingUpdate update = new PendingUpdate(player.getUniqueId(), cx, cz, sy, solid.shorts, solid.data, 0.0, stateKey);
                 sendProtocolPacket(player, update);
