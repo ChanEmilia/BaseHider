@@ -163,11 +163,7 @@ public class HiderSystem implements Listener {
     }
 
     private void loadConfig() {
-        int updatesPerSecond = plugin.getConfig().getInt("performance.max-updates-per-second", 100);
-        this.updatesPerTick = Math.max(1, updatesPerSecond / 20);
-
-        this.rescanInterval = plugin.getConfig().getInt("performance.rescan-interval", 10);
-        this.rehideChunks = plugin.getConfig().getBoolean("performance.rehide-chunks", false);
+        this.globalConfig = new GlobalConfig(plugin.getConfig().getConfigurationSection("performance"));
 
         for (String key : plugin.getConfig().getKeys(false)) {
             if (key.equalsIgnoreCase("performance") || key.equalsIgnoreCase("enabled")) continue;
