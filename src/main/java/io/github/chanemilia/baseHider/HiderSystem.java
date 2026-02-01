@@ -236,15 +236,6 @@ public class HiderSystem implements Listener {
         }.runTaskTimer(plugin, 1, 1));
     }
 
-    private void startCacheCleaner() {
-        tasks.add(new BukkitRunnable() {
-            @Override
-            public void run() {
-                long now = System.currentTimeMillis();
-                packetCache.entrySet().removeIf(e -> (now - e.getValue().lastAccessed) > 300000);
-            }
-        }.runTaskTimerAsynchronously(plugin, 1200, 1200));
-    }
 
     private void sendProtocolPacket(Player player, PendingUpdate update) {
         if (update.shorts == null || update.shorts.length == 0) return;
