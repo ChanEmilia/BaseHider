@@ -514,6 +514,7 @@ public class HiderSystem implements Listener {
     public void cleanup(Player player) {
         String uid = player.getUniqueId().toString();
         currentStates.keySet().removeIf(k -> k.startsWith(uid));
+        hiddenEntities.removeIf(k -> k.startsWith(uid));
     }
 
     public void shutdown() {
