@@ -107,11 +107,7 @@ public class HiderSystem implements Listener {
             double sx = (cx << 4) + 8;
             double syPos = (sy << 4) + 8;
             double sz = (cz << 4) + 8;
-            double distSq = Math.pow(loc.getX() - sx, 2) + Math.pow(loc.getY() - syPos, 2) + Math.pow(loc.getZ() - sz, 2);
-
-            if (distSq <= showDistSq) {
-                long sectionKey = getSectionKey(cx, cz, sy);
-                String stateKey = player.getUniqueId().toString() + "_" + sectionKey;
+            double distSq = Math.pow(pX - sx, 2) + Math.pow(pY - syPos, 2) + Math.pow(pZ - sz, 2);
 
             boolean shouldHide = distSq > config.showDistanceSq;
 
