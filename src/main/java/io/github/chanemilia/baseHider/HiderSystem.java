@@ -561,7 +561,6 @@ public class HiderSystem implements Listener {
         SectionCache(short[] s, WrappedBlockData[] d) {
             this.shorts = s;
             this.data = d;
-            this.lastAccessed = System.currentTimeMillis();
         }
     }
 
