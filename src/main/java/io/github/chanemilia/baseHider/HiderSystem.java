@@ -55,6 +55,7 @@ public class HiderSystem implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
 
         registerChunkListener();
+        registerEntityListener();
 
         startQueueProcessor();
         startRescanTask();
