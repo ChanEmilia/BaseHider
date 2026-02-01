@@ -104,6 +104,9 @@ public class HiderSystem implements Listener {
         double showDistSq = config.showDistanceSq;
 
         for (int sy = minSection; sy <= maxSection; sy++) {
+            long sectionKey = getSectionKey(cx, cz, sy);
+            String stateKey = player.getUniqueId().toString() + "_" + sectionKey;
+
             double sx = (cx << 4) + 8;
             double syPos = (sy << 4) + 8;
             double sz = (cz << 4) + 8;
