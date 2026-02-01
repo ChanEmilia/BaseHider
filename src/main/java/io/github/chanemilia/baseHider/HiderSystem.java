@@ -220,7 +220,7 @@ public class HiderSystem implements Listener {
         tasks.add(new BukkitRunnable() {
             @Override
             public void run() {
-                int budget = updatesPerTick;
+                int budget = globalConfig.updatesPerTick;
                 while (budget > 0 && !updateQueue.isEmpty()) {
                     PendingUpdate update = updateQueue.poll();
                     if (update == null) continue;
