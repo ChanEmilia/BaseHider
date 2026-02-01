@@ -165,7 +165,6 @@ public class HiderSystem implements Listener {
 
             if (shouldHide) {
                 currentStates.put(stateKey, true);
-                pendingKeys.add(stateKey);
 
                 SectionCache solid = getSolidCache(config);
 
