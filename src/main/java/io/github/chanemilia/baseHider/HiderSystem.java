@@ -311,6 +311,10 @@ public class HiderSystem implements Listener {
                     Boolean isHidden = currentStates.getOrDefault(stateKey, false);
 
                     if (shouldHide != isHidden) {
+                        if (shouldHide && !isHidden && !rehideChunks) {
+                            continue;
+                        }
+
                         if (pendingKeys.contains(stateKey)) continue;
 
                         currentStates.put(stateKey, shouldHide);
