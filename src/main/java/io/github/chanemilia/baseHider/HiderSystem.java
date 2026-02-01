@@ -379,8 +379,8 @@ public class HiderSystem implements Listener {
                 String key = player.getUniqueId() + "_" + entity.getEntityId();
                 boolean isCurrentlyHidden = hiddenEntities.contains(key);
 
-            Location loc = entity.getLocation();
-            boolean shouldHide = false;
+                Location loc = entity.getLocation();
+                boolean shouldHide = false;
 
             if (loc.getBlockY() <= config.blockHideY && player.getLocation().getY() >= config.showY) {
                 if (player.getLocation().distanceSquared(loc) > config.showDistanceSq) {
