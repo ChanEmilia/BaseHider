@@ -1,5 +1,7 @@
 package io.github.chanemilia.baseHider;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
@@ -41,6 +43,8 @@ public class BaseHider extends JavaPlugin implements Listener, CommandExecutor {
 
     @Override
     public void onDisable() {
+        PacketEvents.getAPI().terminate();
+
         if (hiderSystem != null) {
             hiderSystem.shutdown();
         }
