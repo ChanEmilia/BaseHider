@@ -35,7 +35,7 @@ public class BaseHider extends JavaPlugin implements Listener, CommandExecutor {
         getServer().getPluginManager().registerEvents(this, this);
 
         if (getCommand("basehider") != null) {
-            getCommand("basehider").setExecutor(this);
+            Objects.requireNonNull(getCommand("basehider")).setExecutor(this);
         }
 
         getLogger().info("Good job Emilia your plugin works!");
