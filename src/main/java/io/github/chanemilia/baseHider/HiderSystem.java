@@ -399,28 +399,14 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
                 }
 
                 if (isCurrentlyHidden && !shouldHide) {
-                    // Reveal entity by resending update packet
-                    try {
-                        protocolManager.updateEntity(entity, Collections.singletonList(player));
-                        hiddenEntities.remove(key);
-                    } catch (Exception e) {
-                        // Entity likely dead/invalid
-                    }
-                } else if (!isCurrentlyHidden && shouldHide) {
-                    // Hide entity by sending destroy packet
-                    PacketContainer destroyPacket = protocolManager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
-                    if (Bukkit.getVersion().contains("1.20") || Bukkit.getVersion().contains("1.21")) {
-                        destroyPacket.getIntLists().write(0, Collections.singletonList(entity.getEntityId()));
-                    } else {
-                        destroyPacket.getIntegerArrays().write(0, new int[]{entity.getEntityId()});
-                    }
-
-                    try {
-                        protocolManager.sendServerPacket(player, destroyPacket);
-                        hiddenEntities.add(key);
-                    } catch (Exception e) {
-                        // Ignore
-                    }
+                    player.hideEntity(plugin, entity);
+                    player.showEntity(plugin, entity);
+                    hiddenEntities.remove(key);
+                }
+                else if (!isCurrentlyHidden && shouldHide) {
+                    WrapperPlayServerDestroyEntities destroy = new WrapperPlayServerDestroyEntities(entity.getEntityId());
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player, destroy);
+                    hiddenEntities.add(key);
                 }
             }
         });
