@@ -24,6 +24,8 @@ public class BaseHider extends JavaPlugin implements Listener, CommandExecutor {
 
     @Override
     public void onEnable() {
+        PacketEvents.getAPI().init();
+
         saveDefaultConfig();
 
         hiderSystem = new HiderSystem(this);
