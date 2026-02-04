@@ -303,8 +303,11 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
             return;
         }
 
-        packet.getShortArrays().write(0, update.shorts);
-        packet.getBlockDataArrays().write(0, update.data);
+        WrapperPlayServerMultiBlockChange packet = new WrapperPlayServerMultiBlockChange(
+                new Vector3i(update.chunkX, update.sectionY, update.chunkZ),
+                false,
+                blocks
+        );
 
         try {
             protocolManager.sendServerPacket(player, packet);
