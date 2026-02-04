@@ -116,10 +116,17 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
 
                     if (entity == null || entity.isDead()) return;
 
-                    // Don't hide their own player (though they shouldn't receive their own spawn packet usually
-                    if (entity.getEntityId() == player.getEntityId()) return;
-
-                    Location entLoc = entity.getLocation();
+        if (event.getPacketType() == PacketType.Play.Server.SPAWN_ENTITY) {
+            WrapperPlayServerSpawnEntity spawn = new WrapperPlayServerSpawnEntity(event);
+            entityId = spawn.getEntityId();
+            entLoc = new Location(player.getWorld(), spawn.getPosition().getX(), spawn.getPosition().getY(), spawn.getPosition().getZ());
+        } else if (event.getPacketType() == PacketType.Play.Server.ENTITY_TELEPORT) {
+            WrapperPlayServerEntityTeleport tp = new WrapperPlayServerEntityTeleport(event);
+            entityId = tp.getEntityId();
+            entLoc = new Location(player.getWorld(), tp.getPosition().getX(), tp.getPosition().getY(), tp.getPosition().getZ());
+        } else {
+            return;
+        }
 
                     if (entLoc.getBlockY() > config.blockHideY) return;
 
