@@ -540,8 +540,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
     private static class PendingUpdate implements Comparable<PendingUpdate> {
         final UUID playerUUID;
         final int chunkX, chunkZ, sectionY;
-        final short[] shorts;
-        final WrappedBlockData[] data;
+        final SimpleBlockInfo[] blockInfo;
         final double distSq;
         final String uniqueKey;
 
