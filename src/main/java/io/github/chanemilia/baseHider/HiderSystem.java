@@ -528,6 +528,15 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         return ((long)(x & 0xFFFFFF) << 40) | ((long)(z & 0xFFFFFF) << 16) | (y & 0xFFFF);
     }
 
+    private static class SimpleBlockInfo {
+        final int globalId;
+        final int x, y, z;
+        SimpleBlockInfo(int id, int x, int y, int z) {
+            this.globalId = id;
+            this.x = x; this.y = y; this.z = z;
+        }
+    }
+
     private static class PendingUpdate implements Comparable<PendingUpdate> {
         final UUID playerUUID;
         final int chunkX, chunkZ, sectionY;
