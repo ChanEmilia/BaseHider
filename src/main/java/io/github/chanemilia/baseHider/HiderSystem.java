@@ -32,7 +32,6 @@ import java.util.concurrent.PriorityBlockingQueue;
 public class HiderSystem extends PacketListenerAbstract implements Listener {
 
     private final BaseHider plugin;
-    private final ProtocolManager protocolManager;
     private final Map<String, WorldConfig> worldConfigs = new HashMap<>();
 
     private final Map<String, Boolean> currentStates = new ConcurrentHashMap<>();
