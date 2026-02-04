@@ -285,9 +285,9 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
 
 
     private void sendProtocolPacket(Player player, PendingUpdate update) {
-        if (update.shorts == null || update.shorts.length == 0) return;
-
-        PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.MULTI_BLOCK_CHANGE);
+        if (update.blockInfo == null || update.blockInfo.length == 0) return;
+        
+        WrapperPlayServerMultiBlockChange.EncodedBlock[] blocks = new WrapperPlayServerMultiBlockChange.EncodedBlock[update.blockInfo.length];
 
         long sectionPosLong = ((long)(update.chunkX & 0x3FFFFF) << 42)
                 | ((long)(update.chunkZ & 0x3FFFFF) << 20)
