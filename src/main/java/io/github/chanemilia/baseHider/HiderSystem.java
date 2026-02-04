@@ -47,74 +47,59 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
 
     private final List<BukkitTask> tasks = new ArrayList<>();
 
-    private Class<?> sectionPosClass;
-    private Method sectionPosOfMethod;
-
     public HiderSystem(BaseHider plugin) {
+        super(PacketListenerPriority.NORMAL);
         this.plugin = plugin;
-        this.protocolManager = ProtocolLibrary.getProtocolManager();
 
-        cacheReflection();
         loadConfig();
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-
-        registerChunkListener();
-        registerEntityListener();
+        PacketEvents.getAPI().getEventManager().registerListener(this);
 
         startQueueProcessor();
         startRescanTask();
     }
 
-    /**
-     * Intercepts the MAP_CHUNK packet (ClientboundLevelChunkWithLightPacket) to hide the underground instantly
-     * which ensures the client receives our fake block data packets immediately after the real chunk data,
-     * prevents client from ever rendering the real block data when out of range
-     */
-    private void registerChunkListener() {
-        protocolManager.addPacketListener(new PacketAdapter(plugin, PacketType.Play.Server.MAP_CHUNK) {
-            @Override
-            public void onPacketSending(PacketEvent event) {
-                Player player = event.getPlayer();
-                if (player == null || !player.isOnline()) return;
+    @Override
+    public void onPacketSend(PacketSendEvent event) {
+        if (event.getPacketType() == PacketType.Play.Server.CHUNK_DATA) {
+            handleChunkData(event);
+        } else if (isEntityPacket(event.getPacketType())) {
+            handleEntityPacket(event);
+        }
+    }
 
-                WorldConfig config = worldConfigs.get(player.getWorld().getName());
-                if (config == null) return;
+    private boolean isEntityPacket(PacketTypeCommon type) {
+        return type == PacketType.Play.Server.SPAWN_ENTITY ||
+                type == PacketType.Play.Server.NAMED_SOUND_EFFECT ||
+                type == PacketType.Play.Server.ENTITY_TELEPORT;
+    }
+
+    private void handleChunkData(PacketSendEvent event) {
+        Player player = (Player) event.getPlayer();
+        if (player == null || !player.isOnline()) return;
+
+        WorldConfig config = worldConfigs.get(player.getWorld().getName());
+        if (config == null) return;
 
         WrapperPlayServerChunkData packet = new WrapperPlayServerChunkData(event);
         Column column = packet.getColumn();
         int chunkX = column.getX();
         int chunkZ = column.getZ();
 
-                // Bukkit API mandates that we switch to the main thread to get the ChunkSnapshot safely
-                // We only switch back to async to scan the snapshot (to save our cpu
-                Bukkit.getScheduler().runTask(plugin, () ->
-                        processNewChunk(player, chunkX, chunkZ, config)
-                );
-            }
-        });
+        Bukkit.getScheduler().runTask(plugin, () ->
+                processNewChunk(player, chunkX, chunkZ, config)
+        );
     }
 
-    private void registerEntityListener() {
-        List<PacketType> entityPackets = Arrays.asList(
-                PacketType.Play.Server.SPAWN_ENTITY,
-                PacketType.Play.Server.NAMED_SOUND_EFFECT, // Optional (? also hides sounds I guess
-                PacketType.Play.Server.ENTITY_TELEPORT
-        );
+    private void handleEntityPacket(PacketSendEvent event) {
+        Player player = (Player) event.getPlayer();
+        if (player == null || !player.isOnline()) return;
 
-        protocolManager.addPacketListener(new PacketAdapter(plugin, entityPackets) {
-            @Override
-            public void onPacketSending(PacketEvent event) {
-                Player player = event.getPlayer();
-                if (player == null || !player.isOnline()) return;
+        WorldConfig config = worldConfigs.get(player.getWorld().getName());
+        if (config == null || !config.hideEntities) return;
 
-                WorldConfig config = worldConfigs.get(player.getWorld().getName());
-                if (config == null || !config.hideEntities) return;
-
-                try {
-                    int entityId = event.getPacket().getIntegers().read(0);
-                    org.bukkit.entity.Entity entity = protocolManager.getEntityFromID(player.getWorld(), entityId);
-
-                    if (entity == null || entity.isDead()) return;
+        int entityId;
+        Location entLoc;
 
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_ENTITY) {
             WrapperPlayServerSpawnEntity spawn = new WrapperPlayServerSpawnEntity(event);
@@ -128,22 +113,15 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
             return;
         }
 
-                    if (entLoc.getBlockY() > config.blockHideY) return;
+        if (entLoc.getBlockY() > config.blockHideY) return;
+        if (player.getLocation().getY() < config.showY) return;
 
-                    if (player.getLocation().getY() < config.showY) return;
+        double distSq = player.getLocation().distanceSquared(entLoc);
 
-                    double distSq = player.getLocation().distanceSquared(entLoc);
-
-                    if (distSq > config.showDistanceSq) {
-                        event.setCancelled(true);
-                        hiddenEntities.add(player.getUniqueId() + "_" + entityId);
-                    }
-
-                } catch (Exception e) {
-                    // Ignore error?
-                }
-            }
-        });
+        if (distSq > config.showDistanceSq) {
+            event.setCancelled(true);
+            hiddenEntities.add(player.getUniqueId() + "_" + entityId);
+        }
     }
 
     private void processNewChunk(Player player, int cx, int cz, WorldConfig config) {
@@ -172,44 +150,10 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
 
             if (shouldHide) {
                 currentStates.put(stateKey, true);
-
                 SectionCache solid = getSolidCache(config);
                 PendingUpdate update = new PendingUpdate(player.getUniqueId(), cx, cz, sy, solid.blockInfo, 0.0, stateKey);
                 sendProtocolPacket(player, update);
             }
-        }
-    }
-
-    /**
-     * Hi, ProtocolLib is slightly broken in 1.21, at least at the time of writing
-     *
-     * The issue:
-     * So basically, when we hide blocks, we send a MULTI_BLOCK_CHANGE packet,
-     * but of course the packet needs to know which chunk section it is modifying
-     * Minecraft expects a specific internal object called 'SectionPos'.
-     * Usually ProtocolLib is supposed to handle this translation between the plugin
-     * and Minecraft, (ie plugin gives ProtocolLib the coordinates and it creates
-     * 'SectionPos' for me). However, 1.21 Paper altered the packet structure slightly
-     * which results in ProtocolLib being unable to create that 'SectionPos' object
-     * automatically using its standard wrappers (BlockPosition), putting 'null' into
-     * the packet instead. When the server tries to send packet and sees 'null', it
-     * throws a NullPointerException and kicks the player. Which is.. bad
-     *
-     * The solution:
-     * Since ProtocolLib's automatic tool is broken, we have to unfortunately manually
-     * built the part using :sparkles: Reflection :sparkles:!
-     *   - Learn more @ https://docs.oracle.com/javase/tutorial/reflect/
-     *     comprehensive but kind of a dry read
-     */
-    private void cacheReflection() {
-        try {
-            // Anyway, we locate the class here
-            this.sectionPosClass = Class.forName("net.minecraft.core.SectionPos");
-            // Find the section position method inside that class
-            this.sectionPosOfMethod = this.sectionPosClass.getMethod("of", long.class);
-            // See plugin's sendProtocolPacket method for next step
-        } catch (Exception e) {
-            plugin.getLogger().warning("Failed to cache SectionPos reflection: " + e.getMessage());
         }
     }
 
@@ -283,24 +227,14 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         }.runTaskTimer(plugin, 1, 1));
     }
 
-
     private void sendProtocolPacket(Player player, PendingUpdate update) {
         if (update.blockInfo == null || update.blockInfo.length == 0) return;
-        
+
         WrapperPlayServerMultiBlockChange.EncodedBlock[] blocks = new WrapperPlayServerMultiBlockChange.EncodedBlock[update.blockInfo.length];
 
-        long sectionPosLong = ((long)(update.chunkX & 0x3FFFFF) << 42)
-                | ((long)(update.chunkZ & 0x3FFFFF) << 20)
-                | (long)(update.sectionY & 0xFFFFF);
-
-        try {
-            if (sectionPosClass == null) cacheReflection();
-            // Create SectionPos method ourselves
-            Object nmsSectionPos = sectionPosOfMethod.invoke(null, sectionPosLong);
-            // Jam our object into the packet
-            packet.getModifier().write(0, nmsSectionPos);
-        } catch (Exception e) {
-            return;
+        for (int i = 0; i < update.blockInfo.length; i++) {
+            SimpleBlockInfo info = update.blockInfo[i];
+            blocks[i] = new WrapperPlayServerMultiBlockChange.EncodedBlock(info.globalId, info.x, info.y, info.z);
         }
 
         WrapperPlayServerMultiBlockChange packet = new WrapperPlayServerMultiBlockChange(
@@ -309,12 +243,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
                 blocks
         );
 
-        try {
-            protocolManager.sendServerPacket(player, packet);
-        } catch (OutOfMemoryError e) {
-            updateQueue.clear();
-            System.gc();
-        }
+        PacketEvents.getAPI().getPlayerManager().sendPacket(player, packet);
     }
 
     private void whatWouldEmiliaDo(Player player, WorldConfig config) {
@@ -365,7 +294,6 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
                         }
 
                         pendingKeys.add(stateKey);
-
                         queueUpdate(player.getUniqueId(), cx, cz, sy, config, shouldHide, distSq, stateKey, sectionKey);
                     }
                 }
@@ -380,7 +308,6 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
     private void updateEntityVisibility(Player player, WorldConfig config) {
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (!player.isOnline()) return;
-
             int radius = (player.getClientViewDistance() + 2) * 16;
 
             for (org.bukkit.entity.Entity entity : player.getNearbyEntities(radius, 512, radius)) {
@@ -429,10 +356,10 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
             ChunkSnapshot snapshot = p.getWorld().getChunkAt(cx, cz).getChunkSnapshot(false, false, false);
 
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                ScanResult result = scanSection(snapshot, sy, config);
+                SimpleBlockInfo[] result = scanSection(snapshot, sy, config);
 
                 if (result != null) {
-                    updateQueue.add(new PendingUpdate(uuid, cx, cz, sy, result.shorts, result.data, distSq, uniqueKey));
+                    updateQueue.add(new PendingUpdate(uuid, cx, cz, sy, result, distSq, uniqueKey));
                 } else {
                     pendingKeys.remove(uniqueKey);
                 }
@@ -442,23 +369,18 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
 
     private SectionCache getSolidCache(WorldConfig config) {
         return solidCache.computeIfAbsent(config.replacementBlock.getMaterial(), k -> {
-            ScanResult res = emiliasPaintBrush(config);
-            if (res == null) return new SectionCache(new short[0], new WrappedBlockData[0]);
-            return new SectionCache(res.shorts, res.data);
+            SimpleBlockInfo[] res = emiliasPaintBrush(config);
+            return new SectionCache(res);
         });
     }
 
-    private ScanResult scanSection(ChunkSnapshot snapshot, int sy, WorldConfig config) {
+    private SimpleBlockInfo[] scanSection(ChunkSnapshot snapshot, int sy, WorldConfig config) {
         int startY = sy << 4;
-
-        List<Short> shortList = new ArrayList<>();
-        List<WrappedBlockData> dataList = new ArrayList<>();
-
+        List<SimpleBlockInfo> infoList = new ArrayList<>();
         Material replacementMat = config.replacementBlock.getMaterial();
 
         for (int y = 0; y < 16; y++) {
             int absY = startY + y;
-
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
                     BlockData actualData = snapshot.getBlockData(x, absY, z);
@@ -471,43 +393,26 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
             }
         }
 
-        if (shortList.isEmpty()) return null;
-
-        short[] shorts = new short[shortList.size()];
-        WrappedBlockData[] data = new WrappedBlockData[dataList.size()];
-        for (int i = 0; i < shortList.size(); i++) {
-            shorts[i] = shortList.get(i);
-            data[i] = dataList.get(i);
-        }
-
-        return new ScanResult(shorts, data);
+        if (infoList.isEmpty()) return null;
+        return infoList.toArray(new SimpleBlockInfo[0]);
     }
 
-    /**
-     * Generates a 16 wide cubic block array of the replacement block
-     * Because this uses primitive array filling, it is effectively O(1)
-     * at least compared to reading World memory!
-     * Avoids main-thread locking or disk I/O
-     */
-    private ScanResult emiliasPaintBrush(WorldConfig config) {
+    private SimpleBlockInfo[] emiliasPaintBrush(WorldConfig config) {
         int size = 4096;
-        short[] shorts = new short[size];
-        WrappedBlockData[] data = new WrappedBlockData[size];
+        SimpleBlockInfo[] infos = new SimpleBlockInfo[size];
 
-        WrappedBlockData replacement = WrappedBlockData.createData(config.replacementBlock);
+        int globalId = SpigotConversionUtil.fromBukkitBlockData(config.replacementBlock).getGlobalId();
 
         int i = 0;
         for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
-                    shorts[i] = (short) ((x << 8) | (z << 4) | y);
-                    data[i] = replacement;
+                    infos[i] = new SimpleBlockInfo(globalId, x, y, z);
                     i++;
                 }
             }
         }
-
-        return new ScanResult(shorts, data);
+        return infos;
     }
 
     public void cleanup(Player player) {
@@ -517,6 +422,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
     }
 
     public void shutdown() {
+        PacketEvents.getAPI().getEventManager().unregisterListener(this);
         for (BukkitTask t : tasks) t.cancel();
         tasks.clear();
         updateQueue.clear();
@@ -537,43 +443,17 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         }
     }
 
-    private static class PendingUpdate implements Comparable<PendingUpdate> {
-        final UUID playerUUID;
-        final int chunkX, chunkZ, sectionY;
-        final SimpleBlockInfo[] blockInfo;
-        final double distSq;
-        final String uniqueKey;
-
-        PendingUpdate(UUID uid, int cx, int cz, int sy, short[] shorts, WrappedBlockData[] data, double dist, String key) {
-            this.playerUUID = uid;
-            this.chunkX = cx;
-            this.chunkZ = cz;
-            this.sectionY = sy;
-            this.shorts = shorts;
-            this.data = data;
-            this.distSq = dist;
-            this.uniqueKey = key;
-        }
+    private record PendingUpdate(UUID playerUUID, int chunkX, int chunkZ, int sectionY, SimpleBlockInfo[] blockInfo,
+                                 double distSq, String uniqueKey) implements Comparable<PendingUpdate> {
 
         @Override
-        public int compareTo(PendingUpdate o) {
-            return Double.compare(this.distSq, o.distSq);
+            public int compareTo(PendingUpdate o) {
+                return Double.compare(this.distSq, o.distSq);
+            }
         }
-    }
 
     private static class SectionCache {
-        final short[] shorts;
-        final WrappedBlockData[] data;
-
-        SectionCache(short[] s, WrappedBlockData[] d) {
-            this.shorts = s;
-            this.data = d;
-        }
-    }
-
-    private static class ScanResult {
-        final short[] shorts;
-        final WrappedBlockData[] data;
-        ScanResult(short[] s, WrappedBlockData[] d) { this.shorts = s; this.data = d; }
+        final SimpleBlockInfo[] blockInfo;
+        SectionCache(SimpleBlockInfo[] data) { this.blockInfo = data; }
     }
 }

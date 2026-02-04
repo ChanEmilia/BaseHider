@@ -1,5 +1,5 @@
 name: BaseHider
-version: '0.1.2'
+version: '0.1.3'
 main: io.github.chanemilia.baseHider.BaseHider
 api-version: '1.21'
 authors: [ChanEmilia]

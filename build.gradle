@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id("xyz.jpenilla.run-paper") version "2.3.1"
-    id "com.github.johnrengelman.shadow" version "9.3.1"
+    id("com.gradleup.shadow") version "9.3.1"
 }
 
 group = 'io.github.chanemilia'
@@ -25,7 +25,7 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
-    implementation("com.github.retrooper:packetevents-spigot:2.11.2-SNAPSHOT")
+    implementation("com.github.retrooper:packetevents-spigot:2.11.2")
 }
 
 tasks {
@@ -34,6 +34,7 @@ tasks {
     }
 
     shadowJar {
+        archiveClassifier.set('')
         relocate 'com.github.retrooper.packetevents', 'io.github.chanemilia.basehider.packetevents'
     }
 }
