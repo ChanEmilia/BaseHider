@@ -415,7 +415,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
     private void queueUpdate(UUID uuid, int cx, int cz, int sy, WorldConfig config, boolean hide, double distSq, String uniqueKey, long sectionKey) {
         if (hide) {
             SectionCache solid = getSolidCache(config);
-            updateQueue.add(new PendingUpdate(uuid, cx, cz, sy, solid.shorts, solid.data, distSq, uniqueKey));
+            updateQueue.add(new PendingUpdate(uuid, cx, cz, sy, solid.blockInfo, distSq, uniqueKey));
             return;
         }
 
