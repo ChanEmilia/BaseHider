@@ -29,8 +29,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 
-// Hiya programming enthusiast ^_^
-public class HiderSystem implements Listener {
+public class HiderSystem extends PacketListenerAbstract implements Listener {
 
     private final BaseHider plugin;
     private final ProtocolManager protocolManager;
