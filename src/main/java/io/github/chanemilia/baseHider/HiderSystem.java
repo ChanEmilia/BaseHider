@@ -352,7 +352,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
                     Boolean isHidden = currentStates.getOrDefault(stateKey, false);
 
                     if (shouldHide != isHidden) {
-                        if (shouldHide && !isHidden && !globalConfig.rehideChunks) {
+                        if (shouldHide && !globalConfig.rehideChunks) {
                             continue;
                         }
 
