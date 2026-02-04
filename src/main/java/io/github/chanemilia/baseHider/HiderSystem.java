@@ -464,9 +464,8 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
                     BlockData actualData = snapshot.getBlockData(x, absY, z);
 
                     if (actualData.getMaterial() != replacementMat) {
-                        short local = (short) ((x << 8) | (z << 4) | y);
-                        shortList.add(local);
-                        dataList.add(WrappedBlockData.createData(actualData));
+                        int globalId = SpigotConversionUtil.fromBukkitBlockData(actualData).getGlobalId();
+                        infoList.add(new SimpleBlockInfo(globalId, x, y, z));
                     }
                 }
             }
