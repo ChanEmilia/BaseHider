@@ -80,9 +80,10 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
                 WorldConfig config = worldConfigs.get(player.getWorld().getName());
                 if (config == null) return;
 
-                PacketContainer packet = event.getPacket();
-                int chunkX = packet.getIntegers().read(0);
-                int chunkZ = packet.getIntegers().read(1);
+        WrapperPlayServerChunkData packet = new WrapperPlayServerChunkData(event);
+        Column column = packet.getColumn();
+        int chunkX = column.getX();
+        int chunkZ = column.getZ();
 
                 // Bukkit API mandates that we switch to the main thread to get the ChunkSnapshot safely
                 // We only switch back to async to scan the snapshot (to save our cpu
