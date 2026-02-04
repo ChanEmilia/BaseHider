@@ -75,7 +75,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
     }
 
     private void handleChunkData(PacketSendEvent event) {
-        Player player = (Player) event.getPlayer();
+        Player player = event.getPlayer();
         if (player == null || !player.isOnline()) return;
 
         WorldConfig config = worldConfigs.get(player.getWorld().getName());
@@ -92,7 +92,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
     }
 
     private void handleEntityPacket(PacketSendEvent event) {
-        Player player = (Player) event.getPlayer();
+        Player player = event.getPlayer();
         if (player == null || !player.isOnline()) return;
 
         WorldConfig config = worldConfigs.get(player.getWorld().getName());
@@ -139,7 +139,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
 
         for (int sy = minSection; sy <= maxSection; sy++) {
             long sectionKey = getSectionKey(cx, cz, sy);
-            String stateKey = player.getUniqueId().toString() + "_" + sectionKey;
+            String stateKey = player.getUniqueId() + "_" + sectionKey;
 
             double sx = (cx << 4) + 8;
             double syPos = (sy << 4) + 8;
@@ -270,7 +270,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
 
                 for (int sy = minSection; sy <= maxSection; sy++) {
                     long sectionKey = getSectionKey(cx, cz, sy);
-                    String stateKey = player.getUniqueId().toString() + "_" + sectionKey;
+                    String stateKey = player.getUniqueId() + "_" + sectionKey;
 
                     double sx = (cx << 4) + 8;
                     double syPos = (sy << 4) + 8;
@@ -294,7 +294,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
                         }
 
                         pendingKeys.add(stateKey);
-                        queueUpdate(player.getUniqueId(), cx, cz, sy, config, shouldHide, distSq, stateKey, sectionKey);
+                        queueUpdate(player.getUniqueId(), cx, cz, sy, config, shouldHide, distSq, stateKey);
                     }
                 }
             }
@@ -339,7 +339,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         });
     }
 
-    private void queueUpdate(UUID uuid, int cx, int cz, int sy, WorldConfig config, boolean hide, double distSq, String uniqueKey, long sectionKey) {
+    private void queueUpdate(UUID uuid, int cx, int cz, int sy, WorldConfig config, boolean hide, double distSq, String uniqueKey) {
         if (hide) {
             SectionCache solid = getSolidCache(config);
             updateQueue.add(new PendingUpdate(uuid, cx, cz, sy, solid.blockInfo, distSq, uniqueKey));
@@ -434,13 +434,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         return ((long)(x & 0xFFFFFF) << 40) | ((long)(z & 0xFFFFFF) << 16) | (y & 0xFFFF);
     }
 
-    private static class SimpleBlockInfo {
-        final int globalId;
-        final int x, y, z;
-        SimpleBlockInfo(int id, int x, int y, int z) {
-            this.globalId = id;
-            this.x = x; this.y = y; this.z = z;
-        }
+    private record SimpleBlockInfo(int globalId, int x, int y, int z) {
     }
 
     private record PendingUpdate(UUID playerUUID, int chunkX, int chunkZ, int sectionY, SimpleBlockInfo[] blockInfo,
@@ -452,8 +446,6 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
             }
         }
 
-    private static class SectionCache {
-        final SimpleBlockInfo[] blockInfo;
-        SectionCache(SimpleBlockInfo[] data) { this.blockInfo = data; }
+    private record SectionCache(SimpleBlockInfo[] blockInfo) {
     }
 }
