@@ -67,7 +67,7 @@ public class BaseHider extends JavaPlugin implements Listener, CommandExecutor {
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+    public boolean onCommand(@NonNull CommandSender sender, @NonNull Command command, @NonNull String label, String[] args) {
         if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
             if (!sender.hasPermission("basehider.op")) {
                 sender.sendMessage(Component.text("Insufficient permissions.", NamedTextColor.RED));
