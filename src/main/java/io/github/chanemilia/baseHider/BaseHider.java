@@ -22,7 +22,6 @@ public class BaseHider extends JavaPlugin implements Listener, CommandExecutor {
     @Override
     public void onLoad() {
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
-        PacketEvents.getAPI().getSettings().checkForUpdates(false).bStats(false);
         PacketEvents.getAPI().load();
     }
 
