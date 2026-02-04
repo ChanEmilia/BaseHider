@@ -174,8 +174,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
                 currentStates.put(stateKey, true);
 
                 SectionCache solid = getSolidCache(config);
-
-                PendingUpdate update = new PendingUpdate(player.getUniqueId(), cx, cz, sy, solid.shorts, solid.data, 0.0, stateKey);
+                PendingUpdate update = new PendingUpdate(player.getUniqueId(), cx, cz, sy, solid.blockInfo, 0.0, stateKey);
                 sendProtocolPacket(player, update);
             }
         }
