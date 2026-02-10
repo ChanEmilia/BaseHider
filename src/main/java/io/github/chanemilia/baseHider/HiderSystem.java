@@ -304,8 +304,10 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         int minSection = player.getWorld().getMinHeight() >> 4;
         int maxSection = Math.min(player.getWorld().getMaxHeight() >> 4, config.blockHideY >> 4);
 
-        for (int x = -viewDist; x <= viewDist; x++) {
-            for (int z = -viewDist; z <= viewDist; z++) {
+        int effectiveViewDist = globalReveal ? Math.min(3, viewDist) : viewDist;
+
+        for (int x = -effectiveViewDist; x <= effectiveViewDist; x++) {
+            for (int z = -effectiveViewDist; z <= effectiveViewDist; z++) {
                 int cx = centerX + x;
                 int cz = centerZ + z;
 
