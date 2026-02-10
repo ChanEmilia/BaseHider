@@ -185,6 +185,10 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         WorldConfig config = worldConfigs.get(player.getWorld().getName());
         if (config == null) return;
 
+        if (to.getY() < from.getY()) {
+            handleFalling(player, to, config);
+        }
+
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> whatWouldEmiliaDo(player, config));
     }
 
