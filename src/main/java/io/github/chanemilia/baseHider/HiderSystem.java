@@ -192,6 +192,45 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> whatWouldEmiliaDo(player, config));
     }
 
+    private void handleFalling(Player player, Location loc, WorldConfig config) {
+        int px = loc.getBlockX() >> 4;
+        int pz = loc.getBlockZ() >> 4;
+        int py = loc.getBlockY() >> 4;
+        int minHeight = player.getWorld().getMinHeight() >> 4;
+
+        for (int i = 0; i <= 3; i++) {
+            int targetY = py - i;
+            if (targetY < minHeight) break;
+
+            long key = getSectionKey(px, pz, targetY);
+            String stateKey = player.getUniqueId() + "_" + key;
+
+            if (currentStates.getOrDefault(stateKey, false)) {
+                forceRevealSync(player, px, pz, targetY, config, stateKey);
+            }
+        }
+    }
+
+    private void forceRevealSync(Player player, int cx, int cz, int sy, WorldConfig config, String stateKey) {
+        currentStates.put(stateKey, false);
+        pendingKeys.remove(stateKey);
+
+        ChunkSnapshot snapshot;
+        try {
+            if (!player.getWorld().isChunkLoaded(cx, cz)) return;
+            snapshot = player.getWorld().getChunkAt(cx, cz).getChunkSnapshot(false, false, false);
+        } catch (Exception e) {
+            return;
+        }
+
+        SimpleBlockInfo[] result = scanSection(snapshot, sy, config);
+
+        if (result != null) {
+            PendingUpdate update = new PendingUpdate(player.getUniqueId(), cx, cz, sy, result, 0.0, stateKey);
+            sendProtocolPacket(player, update);
+        }
+    }
+
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         cleanup(event.getPlayer());
