@@ -19,11 +19,11 @@ public class WorldConfig {
         Material mat = Material.getMaterial(section.getString("replacement-block", "DEEPSLATE"));
         this.replacementBlock = (mat != null ? mat : Material.DEEPSLATE).createBlockData();
 
-        this.blockHideY = section.getInt("block-hide-y", 0);
+        this.blockHideY = section.getInt("block-hide-y", -1);
 
-        int dist = section.getInt("show-distance", 64);
+        int dist = section.getInt("show-distance", 48);
         this.showDistanceSq = dist * dist;
 
-        this.showY = section.getInt("show-y", 25);
+        this.showY = section.getInt("show-y", 16);
     }
 }
