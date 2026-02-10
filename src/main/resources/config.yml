@@ -1,53 +1,65 @@
-# BaseHider Configuration
-
-# Define settings per world
-# You can add custom dimension names here (e.g., "spawn", "resource_world")!
+# ======================================================
+#                BaseHider Configuration
+# ======================================================
 
 # Global Performance Settings
+# These settings affect how hard the plugin works to update chunks
 performance:
-  max-updates-per-second: 100  # Total chunklets to update per second
-  rescan-interval: 10      # Force rescan every 10 ticks
-  # If false, chunks that have been revealed will stay revealed until the player quits
-  # Saves performance and I guess if they've already seen it there's no reason to rehide
-  # If true, chunks will turn back into replacement-block when the player moves away
+  # How many chunk sections can be updated per server tick
+  # Higher = Faster updates but potentially more lag
+  # Lower = Smoother server performance but "pop-in" effect might be visible
+  # Default: 100 (approx 5 updates per tick)
+  max-updates-per-second: 100
+
+  # How often (in ticks) to re-check all players' surroundings
+  # 10 ticks = 0.5 seconds. Lower values check more often but use more CPU
+  # Default: 10
+  rescan-interval: 10
+
+  # If true, chunks that were revealed will be hidden again when the player walks away
+  # Set to 'false' for better performance (chunks stay revealed until relog)
+  # Default: false
   rehide-chunks: false
 
-# Don't try to hide blocks under the nether roof while above the nether roof
-# Hiding a really massive amount of different blocks will not work
-# (overworld underground will work because most of the blocks are deepslate)
-# I'm working on a solution to this problem
+# ======================================================
+#                   World Settings
+# ======================================================
+# You can add as many worlds as you want here
+# The key must match the folder name of your world (e.g., "world", "world_nether")
 
 world:
+  # Enable the hider for this world?
   enabled: true
-  # Whether or not to hide entities as well, disable if your simulation
-  # distance is low enough that entities hide automatically anyway
-  # Or if you have a raytraced anti ESP plugin
-  hide-entities: true
-  # Fake block used to mask real blocks
-  replacement-block: DEEPSLATE
-  # Hide all blocks at or below this y level, non-inclusive
-  block-hide-y: 0
-  # Radius around the player where the real blocks are revealed
-  show-distance: 64
-  # Reveal all blocks when player is below this y level
-  # Useful for when players enter large caves or underground megabases
-  show-y: 16
 
+  # Also hide entities inside hidden chunks?
+  hide-entities: true
+
+  # The fake block to show instead of real blocks
+  # Set to most abundant block in the hidden region
+  replacement-block: "DEEPSLATE"
+
+  # The Y-level BELOW which blocks will be hidden.
+  # Example: If set to 0, everything below Y=0 is hidden.
+  # Default: -1
+  block-hide-y: -1
+
+  # The radius (in blocks) around the player where real blocks are shown
+  # Everything outside this radius (and below block-hide-y) will be fake
+  # Keep this on the low side to make finding bases harder
+  # Default: 48
+  show-distance: 48
+
+  # If a player is standing ABOVE this Y-level, the hiding system is active
+  # If they go below this level (e.g. into a cave), the hiding disables so they can see
+  # This prevents players from constantly seeing fake blocks when underground
+  # Default: 25
+  show-y: 25
+
+# Example for other dimensions
 world_nether:
-  # Recommended to set to false for the time being
   enabled: false
   hide-entities: true
-  # Maybe more than one replacement-block in the future
-  replacement-block: NETHERRACK
-  block-hide-y: 123
-  show-distance: 0
-  show-y: 126
-
-world_the_end:
-  # Recommended to set to false
-  enabled: false
-  hide-entities: true
-  replacement-block: AIR
-  block-hide-y: 0
-  show-distance: 0
-  show-y: 0
+  replacement-block: "NETHERRACK"
+  block-hide-y: 31
+  show-distance: 32
+  show-y: 60
