@@ -5,7 +5,7 @@
 
 # Global Performance Settings
 performance:
-  updates-per-second: 100  # Total chunklets to update per second
+  max-updates-per-second: 100  # Total chunklets to update per second
   rescan-interval: 10      # Force rescan every 10 ticks
   # If false, chunks that have been revealed will stay revealed until the player quits
   # Saves performance and I guess if they've already seen it there's no reason to rehide
