@@ -128,7 +128,9 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         if (!player.isOnline()) return;
 
         Location loc = player.getLocation();
+        double pX = loc.getX();
         double pY = loc.getY();
+        double pZ = loc.getZ();
 
         if (pY < config.showY) return;
 
@@ -136,12 +138,20 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         int maxSection = Math.min(player.getWorld().getMaxHeight() >> 4, config.blockHideY >> 4);
 
         for (int sy = minSection; sy <= maxSection; sy++) {
-            HidingState state = calculateHiddenState(player, loc, cx, cz, sy, config, false);
+            long sectionKey = getSectionKey(cx, cz, sy);
+            String stateKey = player.getUniqueId() + "_" + sectionKey;
 
-            if (state.shouldHide) {
-                currentStates.put(state.stateKey, true);
+            double sx = (cx << 4) + 8;
+            double syPos = (sy << 4) + 8;
+            double sz = (cz << 4) + 8;
+            double distSq = Math.pow(pX - sx, 2) + Math.pow(pY - syPos, 2) + Math.pow(pZ - sz, 2);
+
+            boolean shouldHide = distSq > config.showDistanceSq;
+
+            if (shouldHide) {
+                currentStates.put(stateKey, true);
                 SectionCache solid = getSolidCache(config);
-                PendingUpdate update = new PendingUpdate(player.getUniqueId(), cx, cz, sy, solid.blockInfo, 0.0, state.stateKey);
+                PendingUpdate update = new PendingUpdate(player.getUniqueId(), cx, cz, sy, solid.blockInfo, 0.0, stateKey);
                 sendProtocolPacket(player, update);
             }
         }
@@ -175,50 +185,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         WorldConfig config = worldConfigs.get(player.getWorld().getName());
         if (config == null) return;
 
-        if (to.getY() < from.getY()) {
-            handleFalling(player, to, config);
-        }
-
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> whatWouldEmiliaDo(player, config));
-    }
-
-    private void handleFalling(Player player, Location loc, WorldConfig config) {
-        int px = loc.getBlockX() >> 4;
-        int pz = loc.getBlockZ() >> 4;
-        int py = loc.getBlockY() >> 4;
-        int minHeight = player.getWorld().getMinHeight() >> 4;
-
-        for (int i = 0; i <= 3; i++) {
-            int targetY = py - i;
-            if (targetY < minHeight) break;
-
-            long key = getSectionKey(px, pz, targetY);
-            String stateKey = player.getUniqueId() + "_" + key;
-
-            if (currentStates.getOrDefault(stateKey, false)) {
-                forceRevealSync(player, px, pz, targetY, config, stateKey);
-            }
-        }
-    }
-
-    private void forceRevealSync(Player player, int cx, int cz, int sy, WorldConfig config, String stateKey) {
-        currentStates.put(stateKey, false);
-        pendingKeys.remove(stateKey);
-
-        ChunkSnapshot snapshot;
-        try {
-            if (!player.getWorld().isChunkLoaded(cx, cz)) return;
-            snapshot = player.getWorld().getChunkAt(cx, cz).getChunkSnapshot(false, false, false);
-        } catch (Exception e) {
-            return;
-        }
-
-        SimpleBlockInfo[] result = scanSection(snapshot, sy, config);
-
-        if (result != null) {
-            PendingUpdate update = new PendingUpdate(player.getUniqueId(), cx, cz, sy, result, 0.0, stateKey);
-            sendProtocolPacket(player, update);
-        }
     }
 
     @EventHandler
@@ -294,34 +261,40 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         int minSection = player.getWorld().getMinHeight() >> 4;
         int maxSection = Math.min(player.getWorld().getMaxHeight() >> 4, config.blockHideY >> 4);
 
-        int effectiveViewDist = globalReveal ? Math.min(3, viewDist) : viewDist;
-
-        for (int x = -effectiveViewDist; x <= effectiveViewDist; x++) {
-            for (int z = -effectiveViewDist; z <= effectiveViewDist; z++) {
+        for (int x = -viewDist; x <= viewDist; x++) {
+            for (int z = -viewDist; z <= viewDist; z++) {
                 int cx = centerX + x;
                 int cz = centerZ + z;
 
-                if (x*x + z*z > effectiveViewDist * effectiveViewDist) continue;
+                if (x*x + z*z > viewDist * viewDist) continue;
 
                 for (int sy = minSection; sy <= maxSection; sy++) {
-                    HidingState state = calculateHiddenState(player, loc, cx, cz, sy, config, globalReveal);
-                    Boolean isHidden = currentStates.getOrDefault(state.stateKey, false);
+                    long sectionKey = getSectionKey(cx, cz, sy);
+                    String stateKey = player.getUniqueId() + "_" + sectionKey;
 
-                    if (state.shouldHide != isHidden) {
-                        if (state.shouldHide && !globalConfig.rehideChunks) {
+                    double sx = (cx << 4) + 8;
+                    double syPos = (sy << 4) + 8;
+                    double sz = (cz << 4) + 8;
+                    double distSq = Math.pow(loc.getX() - sx, 2) + Math.pow(loc.getY() - syPos, 2) + Math.pow(loc.getZ() - sz, 2);
+
+                    boolean shouldHide = !globalReveal && distSq > showDistSq;
+                    Boolean isHidden = currentStates.getOrDefault(stateKey, false);
+
+                    if (shouldHide != isHidden) {
+                        if (shouldHide && !globalConfig.rehideChunks) {
                             continue;
                         }
 
-                        if (pendingKeys.contains(state.stateKey)) continue;
+                        if (pendingKeys.contains(stateKey)) continue;
 
-                        if (state.shouldHide) {
-                            currentStates.put(state.stateKey, true);
+                        if (shouldHide) {
+                            currentStates.put(stateKey, true);
                         } else {
-                            currentStates.remove(state.stateKey);
+                            currentStates.remove(stateKey);
                         }
 
-                        pendingKeys.add(state.stateKey);
-                        queueUpdate(player.getUniqueId(), cx, cz, sy, config, state.shouldHide, state.distSq, state.stateKey);
+                        pendingKeys.add(stateKey);
+                        queueUpdate(player.getUniqueId(), cx, cz, sy, config, shouldHide, distSq, stateKey);
                     }
                 }
             }
@@ -330,33 +303,6 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         if (config.hideEntities) {
             updateEntityVisibility(player, config);
         }
-    }
-
-    private HidingState calculateHiddenState(Player player, Location pLoc, int cx, int cz, int sy, WorldConfig config, boolean globalReveal) {
-        long sectionKey = getSectionKey(cx, cz, sy);
-        String stateKey = player.getUniqueId() + "_" + sectionKey;
-
-        int playerChunkX = pLoc.getBlockX() >> 4;
-        int playerChunkZ = pLoc.getBlockZ() >> 4;
-        int playerSectionY = pLoc.getBlockY() >> 4;
-
-        if (cx == playerChunkX && cz == playerChunkZ) {
-            if (sy <= playerSectionY && sy >= playerSectionY - 4) {
-                return new HidingState(stateKey, false, 0.0);
-            }
-        }
-
-        double sx = (cx << 4) + 8;
-        double syPos = (sy << 4) + 8;
-        double sz = (cz << 4) + 8;
-
-        double distSq = Math.pow(pLoc.getX() - sx, 2) +
-                Math.pow(pLoc.getY() - syPos, 2) +
-                Math.pow(pLoc.getZ() - sz, 2);
-
-        boolean shouldHide = !globalReveal && distSq > config.showDistanceSq;
-
-        return new HidingState(stateKey, shouldHide, distSq);
     }
 
     private void updateEntityVisibility(Player player, WorldConfig config) {
@@ -488,9 +434,8 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         return ((long)(x & 0xFFFFFF) << 40) | ((long)(z & 0xFFFFFF) << 16) | (y & 0xFFFF);
     }
 
-    private record HidingState(String stateKey, boolean shouldHide, double distSq) {}
-
-    private record SimpleBlockInfo(int globalId, int x, int y, int z) {}
+    private record SimpleBlockInfo(int globalId, int x, int y, int z) {
+    }
 
     private record PendingUpdate(UUID playerUUID, int chunkX, int chunkZ, int sectionY, SimpleBlockInfo[] blockInfo,
                                  double distSq, String uniqueKey) implements Comparable<PendingUpdate> {
@@ -501,5 +446,6 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         }
     }
 
-    private record SectionCache(SimpleBlockInfo[] blockInfo) {}
+    private record SectionCache(SimpleBlockInfo[] blockInfo) {
+    }
 }
