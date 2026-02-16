@@ -209,7 +209,7 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
                     }
                 }
             }
-        }.runTaskTimer(plugin, 5, 5)); // Run every 5 ticks (fast)
+        }.runTaskTimer(plugin, 1, 1));
     }
 
     private void startQueueProcessor() {
