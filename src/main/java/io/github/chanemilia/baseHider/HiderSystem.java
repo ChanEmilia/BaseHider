@@ -52,7 +52,6 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
     private static boolean nmsInitialized = false;
     private static Field blockIdsPaletteField;
     private static Field blockIdDataField;
-    private static int worldMinSection = -4;
 
     public HiderSystem(BaseHider plugin) {
         super(PacketListenerPriority.NORMAL);
@@ -65,14 +64,6 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
 
         startQueueProcessor();
         startRescanTask();
-    }
-
-    public static int getWorldMinSection() {
-        return worldMinSection;
-    }
-
-    public static void setWorldMinSection(int worldMinSection) {
-        HiderSystem.worldMinSection = worldMinSection;
     }
 
     private void initializeNmsReflection() {
@@ -426,7 +417,6 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
                 return;
             }
 
-            worldMinSection = p.getWorld().getMinHeight() >> 4;
             ChunkSnapshot snapshot = p.getWorld().getChunkAt(cx, cz).getChunkSnapshot(false, false, false);
 
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
