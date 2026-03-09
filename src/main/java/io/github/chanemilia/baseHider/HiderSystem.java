@@ -50,8 +50,17 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
     private final List<BukkitTask> tasks = new ArrayList<>();
 
     private static boolean nmsInitialized = false;
-    private static Field blockIdsPaletteField;
-    private static Field blockIdDataField;
+    private static boolean nmsAvailable = false;
+
+    private static Field blockDataArrayField;      // PalettedContainer<BlockState>[] or similar
+    private static Field biomeDataField;           // For reference
+
+    private static Method palettedContainerGetMethod;  // get(int x, int y, int z)
+
+    private static Method craftBlockDataFromStateMethod;  // CraftBlockData.fromData(BlockState)
+
+    private static Method blockStateGetBlockMethod;
+    private static Method blockGetMaterialMethod;
 
     public HiderSystem(BaseHider plugin) {
         super(PacketListenerPriority.NORMAL);
@@ -71,55 +80,93 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         nmsInitialized = true;
 
         try {
-            String[] packageParts = Bukkit.getServer().getClass().getPackage().getName().split("\\.");
-            String obcPackage;
+            Class<?> craftChunkSnapshotClass = Class.forName("org.bukkit.craftbukkit.CraftChunkSnapshot");
 
-            if (packageParts.length > 3) {
-                obcPackage = "org.bukkit.craftbukkit." + packageParts[3];
-            } else {
-                obcPackage = "org.bukkit.craftbukkit";
-            }
-
-            Class<?> craftChunkSnapshotClass;
-            try {
-                craftChunkSnapshotClass = Class.forName(obcPackage + ".CraftChunkSnapshot");
-            } catch (ClassNotFoundException e) {
-                craftChunkSnapshotClass = Class.forName("org.bukkit.craftbukkit.CraftChunkSnapshot");
-            }
-
-            for (Field f : craftChunkSnapshotClass.getDeclaredFields()) {
-                f.setAccessible(true);
-                Class<?> fieldType = f.getType();
+            for (Field field : craftChunkSnapshotClass.getDeclaredFields()) {
+                field.setAccessible(true);
+                Class<?> fieldType = field.getType();
 
                 if (fieldType.isArray()) {
-                    Class<?> componentType = fieldType.getComponentType();
-                    if (componentType != null) {
-                        String fieldName = f.getName().toLowerCase();
-                        if (fieldName.contains("palette") || fieldName.contains("blockid")) {
-                            if (componentType.getName().contains("PalettedContainer") ||
-                                    componentType.getName().contains("DataPaletteBlock")) {
-                                blockIdsPaletteField = f;
-                                plugin.getLogger().info("Found section array field: " + f.getName());
-                            }
-                        }
-                        if (componentType == int[].class || componentType == short[].class || componentType == byte[].class) {
-                            blockIdDataField = f;
-                        }
+                    String typeName = fieldType.getComponentType().getName();
+                    if (typeName.contains("PalettedContainer") ||
+                            typeName.contains("DataPaletteBlock") ||
+                            typeName.contains("BlockState")) {
+                        blockDataArrayField = field;
+                        plugin.getLogger().info("Found block data array field: " + field.getName() + " of type " + typeName);
+                        break;
                     }
                 }
             }
 
-            try {
-                Method getBlockDataMethod = craftChunkSnapshotClass.getMethod("getBlockData", int.class, int.class, int.class);
-                getBlockDataMethod.setAccessible(true);
-            } catch (NoSuchMethodException ignored) {}
+            Class<?> palettedContainerClass = Class.forName("net.minecraft.world.level.chunk.PalettedContainer");
+            palettedContainerGetMethod = palettedContainerClass.getMethod("get", int.class, int.class, int.class);
+            palettedContainerGetMethod.setAccessible(true);
 
-            if (blockIdDataField != null || blockIdsPaletteField != null) {
-                plugin.getLogger().info("NMS reflection initialised");
+            Class<?> blockStateClass = Class.forName("net.minecraft.world.level.block.state.BlockState");
+            Class<?> craftBlockDataClass = Class.forName("org.bukkit.craftbukkit.block.data.CraftBlockData");
+
+            craftBlockDataFromStateMethod = craftBlockDataClass.getMethod("fromData", blockStateClass);
+            craftBlockDataFromStateMethod.setAccessible(true);
+
+            blockStateGetBlockMethod = blockStateClass.getMethod("getBlock");
+            blockStateGetBlockMethod.setAccessible(true);
+
+            try {
+                Class<?> craftMagicNumbers = Class.forName("org.bukkit.craftbukkit.util.CraftMagicNumbers");
+                Class<?> blockClass = Class.forName("net.minecraft.world.level.block.Block");
+                blockGetMaterialMethod = craftMagicNumbers.getMethod("getMaterial", blockClass);
+                blockGetMaterialMethod.setAccessible(true);
+            } catch (Exception e) {
+                plugin.getLogger().fine("CraftMagicNumbers.getMaterial not available: " + e.getMessage());
             }
 
+            nmsAvailable = blockDataArrayField != null || palettedContainerGetMethod != null;
+
+            if (nmsAvailable) {
+                plugin.getLogger().info("NMS reflection initialized successfully for Paper 1.21");
+            } else {
+                plugin.getLogger().warning("NMS reflection partially initialized - some optimizations may not be available");
+            }
+
+        } catch (ClassNotFoundException e) {
+            // Try legacy versioned package structure (Spigot without Paper mappings)
+            tryLegacyNmsInit();
         } catch (Exception e) {
-            plugin.getLogger().warning("NMS reflection initialisation failed, using standard api: " + e.getMessage());
+            plugin.getLogger().warning("NMS reflection initialization failed: " + e.getMessage());
+            plugin.getLogger().info("Falling back to standard Bukkit API for chunk reading");
+            nmsAvailable = false;
+        }
+    }
+
+    /**
+     * Fallback NMS initialization for legacy spigot versions with versioned packages
+     */
+    private void tryLegacyNmsInit() {
+        try {
+            String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+            String obcPackage = "org.bukkit.craftbukkit." + version;
+            String nmsPackage = "net.minecraft.server." + version;
+
+            Class<?> craftChunkSnapshotClass = Class.forName(obcPackage + ".CraftChunkSnapshot");
+
+            for (Field field : craftChunkSnapshotClass.getDeclaredFields()) {
+                String fieldName = field.getName().toLowerCase();
+                if (fieldName.contains("block") || fieldName.contains("data")) {
+                    field.setAccessible(true);
+                    blockDataArrayField = field;
+                    plugin.getLogger().info("Found legacy block data field: " + field.getName());
+                    break;
+                }
+            }
+
+            nmsAvailable = blockDataArrayField != null;
+
+            if (nmsAvailable) {
+                plugin.getLogger().info("Legacy NMS reflection initialized for version " + version);
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Legacy NMS initialization also failed: " + e.getMessage());
+            nmsAvailable = false;
         }
     }
 
@@ -418,9 +465,10 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
             }
 
             ChunkSnapshot snapshot = p.getWorld().getChunkAt(cx, cz).getChunkSnapshot(false, false, false);
+            int worldMinSection = p.getWorld().getMinHeight() >> 4;
 
             Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-                SimpleBlockInfo[] result = scanSectionOptimized(snapshot, sy, config);
+                SimpleBlockInfo[] result = scanSection(snapshot, sy, worldMinSection, config);
 
                 if (result != null) {
                     updateQueue.add(new PendingUpdate(uuid, cx, cz, sy, result, distSq, uniqueKey));
@@ -438,7 +486,98 @@ public class HiderSystem extends PacketListenerAbstract implements Listener {
         });
     }
 
-    private SimpleBlockInfo[] scanSectionOptimized(ChunkSnapshot snapshot, int sy, WorldConfig config) {
+    private SimpleBlockInfo[] scanSection(ChunkSnapshot snapshot, int sy, int worldMinSection, WorldConfig config) {
+        if (nmsAvailable) {
+            try {
+                return scanSectionNms(snapshot, sy, worldMinSection, config);
+            } catch (Exception e) {
+                if (nmsAvailable) {
+                    plugin.getLogger().warning("NMS scan failed, using standard api: " + e.getMessage());
+                }
+            }
+        }
+        return scanSectionStandard(snapshot, sy, config);
+    }
+
+    private SimpleBlockInfo[] scanSectionNms(ChunkSnapshot snapshot, int sy, int worldMinSection, WorldConfig config) throws Exception {
+        Material replacementMat = config.replacementBlock.getMaterial();
+
+        SimpleBlockInfo[] tempArray = new SimpleBlockInfo[4096];
+        int count = 0;
+
+        if (blockDataArrayField != null && palettedContainerGetMethod != null) {
+            Object[] sectionContainers = (Object[]) blockDataArrayField.get(snapshot);
+
+            if (sectionContainers != null) {
+                int sectionIndex = sy - worldMinSection;
+
+                if (sectionIndex >= 0 && sectionIndex < sectionContainers.length) {
+                    Object palettedContainer = sectionContainers[sectionIndex];
+
+                    if (palettedContainer != null) {
+                        for (int y = 0; y < 16; y++) {
+                            for (int z = 0; z < 16; z++) {
+                                for (int x = 0; x < 16; x++) {
+                                    Object blockState = palettedContainerGetMethod.invoke(palettedContainer, x, y, z);
+
+                                    if (blockState != null) {
+                                        BlockData blockData = (BlockData) craftBlockDataFromStateMethod.invoke(null, blockState);
+
+                                        if (blockData.getMaterial() != replacementMat) {
+                                            int globalId = SpigotConversionUtil.fromBukkitBlockData(blockData).getGlobalId();
+                                            tempArray[count++] = new SimpleBlockInfo(globalId, x, y, z);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (count == 0) return null;
+                        return Arrays.copyOf(tempArray, count);
+                    }
+                }
+            }
+        }
+
+        if (blockStateGetBlockMethod != null && blockGetMaterialMethod != null &&
+                blockDataArrayField != null && palettedContainerGetMethod != null) {
+
+            Object[] sectionContainers = (Object[]) blockDataArrayField.get(snapshot);
+            int sectionIndex = sy - worldMinSection;
+
+            if (sectionContainers != null && sectionIndex >= 0 && sectionIndex < sectionContainers.length) {
+                Object palettedContainer = sectionContainers[sectionIndex];
+
+                if (palettedContainer != null) {
+                    for (int y = 0; y < 16; y++) {
+                        for (int z = 0; z < 16; z++) {
+                            for (int x = 0; x < 16; x++) {
+                                Object blockState = palettedContainerGetMethod.invoke(palettedContainer, x, y, z);
+
+                                if (blockState != null) {
+                                    Object block = blockStateGetBlockMethod.invoke(blockState);
+                                    Material material = (Material) blockGetMaterialMethod.invoke(null, block);
+
+                                    if (material != replacementMat) {
+                                        BlockData blockData = (BlockData) craftBlockDataFromStateMethod.invoke(null, blockState);
+                                        int globalId = SpigotConversionUtil.fromBukkitBlockData(blockData).getGlobalId();
+                                        tempArray[count++] = new SimpleBlockInfo(globalId, x, y, z);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (count == 0) return null;
+                    return Arrays.copyOf(tempArray, count);
+                }
+            }
+        }
+
+        throw new IllegalStateException("NMS access incomplete, falling back");
+    }
+
+    private SimpleBlockInfo[] scanSectionStandard(ChunkSnapshot snapshot, int sy, WorldConfig config) {
         int startY = sy << 4;
         Material replacementMat = config.replacementBlock.getMaterial();
 
