@@ -15,9 +15,9 @@ public class GlobalConfig {
             return;
         }
 
-        int updatesPerSecond = section.getInt("max-updates-per-second", 100);
-        this.updatesPerTick = Math.max(1, updatesPerSecond / 20);
-        this.rescanInterval = section.getInt("rescan-interval", 10);
+        int updatesPerSecond = section.getInt("max-updates-per-second", 200);
+        this.updatesPerTick = Math.max(25, updatesPerSecond / 20);
+        this.rescanInterval = section.getInt("rescan-interval", 20);
         this.rehideChunks = section.getBoolean("rehide-chunks", false);
     }
 }

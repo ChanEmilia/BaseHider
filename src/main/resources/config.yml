@@ -8,13 +8,13 @@ performance:
   # How many chunk sections can be updated per server tick
   # Higher = Faster updates but potentially more lag
   # Lower = Smoother server performance but "pop-in" effect might be visible
-  # Default: 100 (approx 5 updates per tick)
-  max-updates-per-second: 100
+  # Default: 200 (approx 25 updates per tick)
+  max-updates-per-second: 200
 
   # How often (in ticks) to re-check all players' surroundings
-  # 10 ticks = 0.5 seconds. Lower values check more often but use more CPU
-  # Default: 10
-  rescan-interval: 10
+  # 20 ticks = 1.0 seconds. Lower values check more often but use more CPU
+  # Default: 20
+  rescan-interval: 20
 
   # If true, chunks that were revealed will be hidden again when the player walks away
   # Set to 'false' for better performance (chunks stay revealed until relog)
